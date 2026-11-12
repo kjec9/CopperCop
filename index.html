@@ -18,27 +18,31 @@
   label.file { background: var(--accent); color: #0b2a1d; padding: 6px 12px; border-radius: 6px;
     cursor: pointer; font-weight: 600; }
   label.file input { display: none; }
-  .setting { display: flex; align-items: center; gap: 6px; color: var(--muted); }
-  .setting input { width: 64px; background: var(--bg); color: var(--text); border: 1px solid var(--line);
-    border-radius: 4px; padding: 3px 6px; }
-  details.settings { position: relative; }
-  details.settings summary { cursor: pointer; color: var(--muted); list-style: none; padding: 5px 10px;
+  details.menu { position: relative; }
+  details.menu summary { cursor: pointer; color: var(--muted); list-style: none; padding: 5px 10px;
     border: 1px solid var(--line); border-radius: 6px; }
-  details.settings[open] summary { color: var(--text); }
-  details.settings .grid { position: absolute; top: 36px; left: 0; z-index: 10; background: var(--panel);
-    border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid;
-    grid-template-columns: auto 80px; gap: 8px 12px; align-items: center; white-space: nowrap;
+  details.menu summary::-webkit-details-marker { display: none; }
+  details.menu[open] summary { color: var(--text); border-color: var(--muted); }
+  details.menu .panel { position: absolute; top: 36px; left: 0; z-index: 10; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 8px; padding: 12px; white-space: nowrap;
     box-shadow: 0 8px 24px rgba(0,0,0,.4); }
-  details.settings .grid label { color: var(--muted); }
-  details.settings input { background: var(--bg); color: var(--text); border: 1px solid var(--line);
+  details.menu .grid { display: grid; grid-template-columns: auto 80px; gap: 8px 12px; align-items: center; }
+  details.menu .grid label { color: var(--muted); }
+  details.menu input[type=number] { background: var(--bg); color: var(--text); border: 1px solid var(--line);
     border-radius: 4px; padding: 3px 6px; width: 80px; }
+  details.menu .list { display: flex; flex-direction: column; gap: 9px; min-width: 210px; }
+  details.menu .list label { display: flex; align-items: center; gap: 8px; color: var(--text); cursor: pointer; }
+  details.menu .list .sep { border-top: 1px solid var(--line); margin: 2px 0; }
+  details.menu .list .head { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
   .ready { margin: 8px 0 12px; padding: 10px; border-radius: 8px; background: rgba(61,220,151,.12);
     border: 1px solid rgba(61,220,151,.45); color: var(--text); }
   .ready strong { color: var(--accent); }
   #preview { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; font-size: 12px; color: var(--muted); }
   #preview img { display: block; max-width: 100%; margin: 6px 0; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
   #preview a { color: var(--info); margin-right: 12px; }
-  .copyright { margin-left: auto; color: var(--muted); font-size: 13px; }
+  .copyright { margin-left: auto; color: var(--muted); font-size: 15px; }
+  @keyframes liflash { 0% { background: rgba(255,225,77,.38); } 100% { background: var(--bg); } }
+  ol#issues li.flash { animation: liflash 1.6s ease-out; }
   button { background: var(--bg); color: var(--text); border: 1px solid var(--line); border-radius: 6px;
     padding: 5px 10px; cursor: pointer; }
   button:hover { border-color: var(--muted); }
@@ -81,28 +85,54 @@
   <span id="logo" style="display:flex"></span>
   <h1>Copper Cop <span style="font-weight:400;color:var(--muted)">· PCB Design Review Checker</span></h1>
   <label class="file">Open .fbrd / .brd<input id="file" type="file" accept=".fbrd,.brd"></label>
-  <details class="settings">
+  <details class="menu">
     <summary>Settings</summary>
-    <div class="grid">
+    <div class="panel grid">
       <label>Min. copper gap (mil)</label><input id="minGap" type="number" step="1" min="0" value="14">
       <label>Min. trace width (mil)</label><input id="minWidth" type="number" step="1" min="0" value="18">
       <label>Preferred trace width (mil)</label><input id="prefWidth" type="number" step="1" min="0" value="30">
-      <label>Off-centre pad exit allowed (mil)</label><input id="centreTol" type="number" step="0.5" min="0" value="2">
+      <label>Off-centre pad exit allowed (mil)</label><input id="centreTol" type="number" step="0.5" min="0" value="5">
       <label>Jog: error below (mil)</label><input id="jogErr" type="number" step="1" min="0" value="16">
       <label>Jog: warning below (mil)</label><input id="jogWarn" type="number" step="1" min="0" value="18">
+      <label>Min. component hole (mil)</label><input id="minHole" type="number" step="0.5" min="0" value="39.37">
+      <label>Parts overlap allowed (mil)</label><input id="overlapAllow" type="number" step="1" min="0" value="4">
       <label>Mounting holes expected</label><input id="holeCount" type="number" step="1" min="0" value="4">
       <label>Hole edge → board edge (mm)</label><input id="holeEdge" type="number" step="0.1" min="0" value="2">
       <label>Hole edge → copper/parts (mm)</label><input id="holeKeep" type="number" step="0.1" min="0" value="2.5">
     </div>
   </details>
-  <span class="setting"><input id="showNames" type="checkbox" style="width:auto" checked> Part names</span>
+  <details class="menu">
+    <summary>View</summary>
+    <div class="panel list">
+      <label><input id="showNames" type="checkbox" checked> Part names</label>
+      <label title="Off hides Top copper and its issues (the &quot;Board has a Top layer&quot; error stays)."><input id="showTop" type="checkbox"> Top layer</label>
+      <label title="Off hides Bottom copper and its issues. Board-wide issues (holes, parts, airwires) stay."><input id="showBottom" type="checkbox" checked> Bottom layer</label>
+      <div class="sep"></div>
+      <div class="head">Show issues</div>
+      <label><input id="showErr" type="checkbox" checked> <span style="color:var(--err)">Errors</span></label>
+      <label><input id="showWarn" type="checkbox" checked> <span style="color:var(--warn)">Warnings</span></label>
+      <label><input id="showInfo" type="checkbox" checked> <span style="color:var(--info)">Notes</span></label>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Permit</summary>
+    <div class="panel list">
+      <label title="Ignore a trace and a pin that are less than 1 mil apart."><input id="permitShort" type="checkbox" checked> Traces touch pad (short)</label>
+      <label title="Ignore the side-exit warning. Angle and rounded-end errors still apply."><input id="permitSide" type="checkbox" checked> Traces leave side of oval pad</label>
+      <label title="Ignore off-grid segments. Pinch points and angled exits still apply."><input id="permitOffGrid" type="checkbox" checked> Trace off 45° grid</label>
+      <label title="Ignore unrouted-connection warnings."><input id="permitUnrouted" type="checkbox"> Unrouted connection</label>
+      <label title="Ignore parts-overlap warnings."><input id="permitOverlap" type="checkbox"> Parts overlap</label>
+      <label title="Ignore the surface-mount part error. Traces must then leave each SMD pad straight out (90° to the edge). On a square or rectangular pad the trace may be off-centre, as long as its whole width stays within that edge and its side is flush with the pad's edge or at least the min. copper gap (14 mil) in from the pad's corner."><input id="permitSMT" type="checkbox"> SMT parts</label>
+      <label title="Ignore the error for component holes smaller than the minimum in Settings (default 1 mm = 39.37 mil)."><input id="permitHoles" type="checkbox"> Small holes</label>
+    </div>
+  </details>
   <button id="fit">Fit view</button>
   <span class="copyright">© 2026 K. Craigs</span>
 </header>
 <main>
   <div id="stage">
     <canvas id="cv"></canvas>
-    <div id="drop">Drop a Fusion board file here<br>(.fbrd archive or EAGLE 9.x .brd)<br><br>Single-sided boards, routed on Bottom.</div>
+    <div id="drop">Drop a Fusion board file here<br>(.fbrd archive or EAGLE 9.x .brd)<br><br>Bottom and Top layers are both checked.</div>
   </div>
   <aside>
     <div id="summary">No board loaded.</div>
@@ -244,30 +274,32 @@ function parseBoard(xmlText) {
   });
 
   // Elements -> pads in board coordinates
-  const elements = [], pads = [], holes = [], smds = [];
+  const elements = [], pads = [], holes = [];
   board.querySelectorAll("elements > element").forEach(e => {
     const name = e.getAttribute("name");
     const ex = num(e, "x"), ey = num(e, "y");
     const r = parseRot(e.getAttribute("rot"));
-    const el = { name, x: ex, y: ey, rot: r, rotText: e.getAttribute("rot") || "R0", pads: [] };
+    const el = { name, x: ex, y: ey, rot: r, rotText: e.getAttribute("rot") || "R0", pads: [], smdPads: [] };
     elements.push(el);
     const pk = pkgs[e.getAttribute("library") + "\u0000" + e.getAttribute("package")];
     if (!pk) return;
-    const c = Math.cos(r.angle * Math.PI / 180), s = Math.sin(r.angle * Math.PI / 180);
+    const c = Math.cos(r.angle * D2R), s = Math.sin(r.angle * D2R);
+    // package-local -> board coordinates: rotate by the part's angle, then mirror (x -> -x) if it's on Bottom
+    const T = (px, py) => { const x = c * px - s * py, y = s * px + c * py; return [ex + (r.mirror ? -x : x), ey + y]; };
+    // a direction in the package (degrees) -> the same direction on the board
+    const A = a => { const t = a + r.angle; return (((r.mirror ? 180 - t : t) % 360) + 360) % 360; };
     pk.querySelectorAll(":scope > pad").forEach(pd => {
-      let px = num(pd, "x"), py = num(pd, "y");
-      let pa = parseRot(pd.getAttribute("rot")).angle;
-      if (r.mirror) { px = -px; pa = 180 - pa; }
+      const [bx, by] = T(num(pd, "x"), num(pd, "y"));
       const drill = num(pd, "drill");
       const restring = Math.min(rmax, Math.max(rmin, rv * drill));
       const w = Math.max(num(pd, "diameter"), drill + 2 * restring);
       const shape = pd.getAttribute("shape") || "round";
       const elong = shape === "long" ? elongLong : shape === "offset" ? elongOffset : 0;
       const pad = {
-        el: name, name: pd.getAttribute("name"), shape, drill, w,
+        el: name, name: pd.getAttribute("name"), shape, drill, w, side: "Both",
         L: w * (1 + elong / 100),
-        x: ex + c * px - s * py, y: ey + s * px + c * py,
-        axis: ((pa + r.angle) % 360 + 360) % 360,   // direction of the long axis, degrees
+        x: bx, y: by,
+        axis: A(parseRot(pd.getAttribute("rot")).angle),   // direction of the long axis, degrees
       };
       // An "offset" pad is a long pad shifted to one side of the drill
       pad.cx = pad.x; pad.cy = pad.y;
@@ -278,22 +310,27 @@ function parseBoard(xmlText) {
       pads.push(pad); el.pads.push(pad);
     });
 
-    // package-local -> board coordinates
-    const T = (px, py) => { if (r.mirror) px = -px; return [ex + c * px - s * py, ey + s * px + c * py]; };
-
     // Mounting holes (non-plated <hole> in the package)
     pk.querySelectorAll(":scope > hole").forEach(h => {
       const [hx, hy] = T(num(h, "x"), num(h, "y"));
       holes.push({ el: name, x: hx, y: hy, drill: num(h, "drill") });
     });
-    // Surface-mount pads
+    // Surface-mount pads: copper on one side only (Top, or Bottom if the part is mirrored)
     pk.querySelectorAll(":scope > smd").forEach(sm => {
       const [sx_, sy_] = T(num(sm, "x"), num(sm, "y"));
-      let a = parseRot(sm.getAttribute("rot")).angle; if (r.mirror) a = 180 - a;
-      smds.push({ el: name, name: sm.getAttribute("name"), x: sx_, y: sy_, dx: num(sm, "dx"), dy: num(sm, "dy"), axis: a + r.angle });
+      const lay = sm.getAttribute("layer");
+      const onTop = (lay === TOP || lay === "1") !== r.mirror;
+      const dx = num(sm, "dx"), dy = num(sm, "dy");
+      const sp = { el: name, name: sm.getAttribute("name"), shape: "rect", smd: true, side: onTop ? "Top" : "Bottom",
+                   dx, dy, w: Math.min(dx, dy), L: Math.max(dx, dy), drill: 0, round: num(sm, "roundness"),
+                   x: sx_, y: sy_, cx: sx_, cy: sy_, axis: A(parseRot(sm.getAttribute("rot")).angle) };
+      pads.push(sp); el.smdPads.push(sp);
     });
     el.isHole = pk.querySelector(":scope > hole") && !pk.querySelector(":scope > pad, :scope > smd");
     el.isSMD = !!pk.querySelector(":scope > smd");
+    // Body side: an SMD-only part sits on its pads' side; a through-hole part on Top (Bottom if mirrored)
+    el.smdOnly = el.isSMD && !pk.querySelector(":scope > pad");
+    el.side = el.smdOnly ? (el.smdPads[0] ? el.smdPads[0].side : "Top") : (r.mirror ? "Bottom" : "Top");
 
     // Part outline: bounding box (in the part's own frame) of its silkscreen, documentation,
     // keep-out graphics and pads. Text is ignored. Stored as 4 board-space corners.
@@ -322,7 +359,7 @@ function parseBoard(xmlText) {
   board.querySelectorAll("plain > hole").forEach(h => holes.push({ el: "(board hole)", x: num(h, "x"), y: num(h, "y"), drill: num(h, "drill") }));
 
   // Signals -> copper segments
-  const segs = [], airwires = [], topSegs = [], pours = [], padNet = {};
+  const segs = [], airwires = [], topSegs = [], pours = [], vias = [], padNet = {};
   board.querySelectorAll("signals > signal").forEach(sig => {
     const net = sig.getAttribute("name");
     sig.querySelectorAll(":scope > wire").forEach(w => {
@@ -336,9 +373,10 @@ function parseBoard(xmlText) {
     sig.querySelectorAll(":scope > polygon").forEach(pg => {
       const layer = pg.getAttribute("layer");
       const verts = [...pg.querySelectorAll("vertex")].map(v => [num(v, "x"), num(v, "y")]);
-      if (layer === TOP) { verts.forEach(([x, y], k) => { const [x2, y2] = verts[(k + 1) % verts.length]; topSegs.push({ net, x1: x, y1: y, x2, y2, width: num(pg, "width") }); }); return; }
-      if (layer === BOTTOM) pours.push({ net, verts, isolate: toMM(pg.getAttribute("isolate") || "0") });
+      if (layer === TOP || layer === BOTTOM)
+        pours.push({ net, verts, layer: layer === TOP ? "Top" : "Bottom", isolate: toMM(pg.getAttribute("isolate") || "0") });
     });
+    sig.querySelectorAll(":scope > via").forEach(v => vias.push({ net, x: num(v, "x"), y: num(v, "y"), drill: num(v, "drill"), d: num(v, "diameter") }));
     sig.querySelectorAll(":scope > contactref").forEach(c => padNet[c.getAttribute("element") + "\u0000" + c.getAttribute("pad")] = net);
   });
   pads.forEach(p => p.net = padNet[p.el + "\u0000" + p.name] ?? null);   // null = pad not connected to anything
@@ -362,7 +400,7 @@ function parseBoard(xmlText) {
   });
   if (!ruleClear && P.mdWireWire) ruleClear = toMM(P.mdWireWire);
 
-  return { elements, pads, holes, smds, segs, topSegs, pours, ruleClear, airwires, outline, bottomLayer: BOTTOM };
+  return { elements, pads, holes, segs, topSegs, pours, vias, ruleClear, airwires, outline, bottomLayer: BOTTOM };
 }
 
 /* =====================================================================
@@ -388,10 +426,10 @@ function axisDiff(a, b) {           // smallest angle between two undirected lin
   let d = Math.abs(a - b) % 180; return Math.min(d, 180 - d);
 }
 function insidePad(x, y, p, eps = 1e-6) {
-  if (p.shape === "square") {
+  if (isRect(p)) {
     const a = -p.axis * D2R, dx = x - p.cx, dy = y - p.cy;
     const u = dx * Math.cos(a) - dy * Math.sin(a), v = dx * Math.sin(a) + dy * Math.cos(a);
-    return Math.abs(u) <= p.w / 2 + eps && Math.abs(v) <= p.w / 2 + eps;
+    return Math.abs(u) <= (p.dx ?? p.w) / 2 + eps && Math.abs(v) <= (p.dy ?? p.w) / 2 + eps;
   }
   // round, octagon (approx.), long, offset: a "stadium" around the long axis
   const a = p.axis * D2R, ux = Math.cos(a), uy = Math.sin(a), h = (p.L - p.w) / 2;
@@ -459,20 +497,82 @@ function padCore(p) {
   return { x1: p.cx - ux, y1: p.cy - uy, x2: p.cx + ux, y2: p.cy + uy };
 }
 // Edge-to-edge copper gap from a point (with its own radius) to a pad
-const pointPadGap = (x, y, r, p) => { const c = padCore(p); return pointSegDist(x, y, c.x1, c.y1, c.x2, c.y2).d - r - p.w / 2; };
+const isRect = p => p.shape === "square" || p.shape === "rect";
+// Corners of a square/rectangular pad (SMD pads are rectangles)
+function padRect(p) {
+  const a = p.axis * D2R, c = Math.cos(a), s = Math.sin(a), hx = (p.dx ?? p.w) / 2, hy = (p.dy ?? p.w) / 2;
+  return [[-hx, -hy], [hx, -hy], [hx, hy], [-hx, hy]].map(([u, v]) => [p.cx + u * c - v * s, p.cy + u * s + v * c]);
+}
+// A pad as fat lines: rectangles are their 4 edges (radius 0); round/oval pads are a core line plus a radius
+function padParts(p) {
+  if (isRect(p)) { const q = padRect(p); return q.map((pt, k) => ({ x1: pt[0], y1: pt[1], x2: q[(k + 1) % 4][0], y2: q[(k + 1) % 4][1], r: 0 })); }
+  return [Object.assign(padCore(p), { r: p.w / 2 })];
+}
+// Edge-to-edge copper gap from a point (with its own radius) to a pad
+const pointPadGap = (x, y, r, p) => {
+  if (isRect(p)) return pointQuadDist(x, y, padRect(p)) - r;
+  const c = padCore(p); return pointSegDist(x, y, c.x1, c.y1, c.x2, c.y2).d - r - p.w / 2;
+};
+// Gap from a trace segment to a pad, plus the nearest point on the trace
+function padGapSeg(p, s) {
+  if (isRect(p)) for (const [x, y] of [[s.x1, s.y1], [s.x2, s.y2]]) if (insidePad(x, y, p)) return { g: -1, x, y };
+  let best = { g: Infinity, x: s.x1, y: s.y1 };
+  for (const part of padParts(p)) {
+    const c = segSegClosest(s, part), g = c.d - s.width / 2 - part.r;
+    if (g < best.g) best = { g, x: s.x1 + (s.x2 - s.x1) * c.ta, y: s.y1 + (s.y2 - s.y1) * c.ta };
+  }
+  return best;
+}
+// Gap between two pads
+function padGapPad(p, q) {
+  if ((isRect(p) && insidePad(q.cx, q.cy, p)) || (isRect(q) && insidePad(p.cx, p.cy, q))) return -1;
+  let g = Infinity;
+  for (const a of padParts(p)) for (const b of padParts(q)) g = Math.min(g, segSegClosest(a, b).d - a.r - b.r);
+  return g;
+}
 
 /* =====================================================================
-   4. RULES. Each returns issues: {severity, rule, msg, where, x, y}
+   4. RULES. Each issue: {severity, rule, msg, where, x, y, layer}
+   Copper rules run once per copper layer: Bottom, then Top if the board has one.
    ===================================================================== */
 
 function runChecks(B, opts) {
   const issues = [];
-  const add = (severity, rule, msg, where, x, y, r) => issues.push({ severity, rule, msg, where, x, y, r });
+  let curLayer = "Bottom";
+  const add = (severity, rule, msg, where, x, y, r, extra) =>
+    issues.push(Object.assign({ severity, rule, msg, where, x, y, r, layer: curLayer }, extra || {}));
 
-  // Which pad (if any) contains a point
+  const hasTop = B.topSegs.length > 0 || B.pours.some(p => p.layer === "Top");
+  for (const layer of ["Bottom", "Top"]) {
+    const segs = layer === "Top" ? B.topSegs : B.segs;
+    const pads = B.pads.filter(p => p.side === "Both" || p.side === layer);
+    if (layer === "Top" && !hasTop && !pads.some(p => p.side === "Top")) continue;
+    curLayer = layer;
+    copperChecks(Object.assign({}, B, { segs, pads, layer, pours: B.pours.filter(p => p.layer === layer) }), opts, add);
+  }
+  curLayer = "Board";
+  boardChecks(B, opts, add, hasTop);
+
+  // "Permit" menu: drop the issue types the instructor has chosen to allow
+  const P = opts.permit;
+  const permitted = it =>
+    (P.short && (it.rule === "Trace touches pad (short)" || it.rule === "Trace too close to pad") && it.g < 1 * MIL) ||
+    (P.sideExit && it.rule === "Trace leaves side of oval pad") ||
+    (P.overlap && it.rule === "Parts overlap") ||
+    (P.offGrid && it.rule === "Trace off 45° grid") ||
+    (P.unrouted && it.rule === "Unrouted connection") ||
+    (P.smt && it.rule === "Surface-mount part") ||
+    (P.holes && it.rule === "Hole too small");
+  return dedupe(issues.filter(it => !permitted(it)));
+}
+
+// ---------------------------------------------------------------------------
+// Copper rules for ONE layer. B.segs / B.pads / B.pours are that layer's copper.
+// ---------------------------------------------------------------------------
+function copperChecks(B, opts, add) {
   const padAt = (x, y) => B.pads.find(p => insidePad(x, y, p));
 
-  // --- Rule: trace exits an oval pad at an angle ---------------------
+  // --- Rule: how a trace leaves an oval pad ---------------------------------
   // Find every segment that crosses the pad outline (one end inside, one outside).
   // The direction of that segment is the direction copper leaves the pad.
   for (const p of B.pads) {
@@ -483,9 +583,7 @@ function runChecks(B, opts) {
       const [ax, ay, bx, by] = i1 ? [s.x1, s.y1, s.x2, s.y2] : [s.x2, s.y2, s.x1, s.y1];
       const dev = axisDiff(dirDeg(ax, ay, bx, by), p.axis);
       // where the trace actually crosses the pad edge (bisection)
-      let lo = 0, hi = 1;
-      for (let k = 0; k < 30; k++) { const m = (lo + hi) / 2; insidePad(ax + (bx - ax) * m, ay + (by - ay) * m, p) ? lo = m : hi = m; }
-      const ex = ax + (bx - ax) * lo, ey = ay + (by - ay) * lo;
+      const [ex, ey] = padEdgeCrossing(p, ax, ay, bx, by);
       const where = `${p.el} pin ${p.name}`;
       if (dev > opts.exitTol && dev < 90 - opts.exitTol) {
         add("error", "Angled exit from oval pad",
@@ -493,40 +591,72 @@ function runChecks(B, opts) {
       } else {
         // Position of the exit relative to the pad: along its long axis (t) and across it (off)
         const ua = p.axis * D2R, ux = Math.cos(ua), uy = Math.sin(ua);
-        const t = (ex - p.cx) * ux + (ey - p.cy) * uy;            // along the axis
-        const off = Math.abs(-(ex - p.cx) * uy + (ey - p.cy) * ux); // across the axis
+        const t = (ex - p.cx) * ux + (ey - p.cy) * uy;
+        const off = Math.abs(-(ex - p.cx) * uy + (ey - p.cy) * ux);
         const h = (p.L - p.w) / 2;                                  // half-length of the straight sides
         if (dev <= opts.exitTol) {
-          // --- End exit: must leave through the centre of the rounded end ---
           if (off > opts.centreTol)
             add("error", "Off-centre exit from pad end",
               `Trace leaves the end of the oval pad ${milTxt(off)} off its centre line. Route it out of the middle of the end.`, where, ex, ey);
+        } else if (Math.abs(t) + s.width / 2 > h + 1e-4) {
+          add("error", "Side exit touches rounded end",
+            `Trace leaves the side of the oval pad but overlaps its rounded end. Move it onto the straight part of the side, or exit from the end.`, where, ex, ey);
         } else {
-          // --- Side exit: the trace's full width must stay on the straight side ---
-          if (Math.abs(t) + s.width / 2 > h + 1e-4)
-            add("error", "Side exit touches rounded end",
-              `Trace leaves the side of the oval pad but overlaps its rounded end. Move it onto the straight part of the side, or exit from the end.`, where, ex, ey);
-          else {
-            // Side exits are fine when the trace runs straight into the neighbouring pad
-            const run = straightRunFrom(B, s, bx, by, hyp(bx - ex, by - ey));
-            if (!run.endPad)
-              add("warning", "Trace leaves side of oval pad",
-                `Trace leaves the side of the oval pad and then continues elsewhere. Exit from the end of the pad, or go straight into the next pad.`, where, ex, ey);
-          }
+          // Side exits are fine when the trace runs straight into the neighbouring pad
+          if (!runsStraightIntoPad(B, s, bx, by))
+            add("warning", "Trace leaves side of oval pad",
+              `Trace leaves the side of the oval pad and then continues elsewhere. Exit from the end of the pad, or go straight into the next pad.`, where, ex, ey);
         }
       }
     }
   }
 
+  // --- Rule: how a trace leaves an SMD pad (only when SMT parts are permitted) ---
+  // The trace must leave square to the side it crosses. On a rectangular/square pad it may be off-centre,
+  // as long as its whole width stays within that side and its edge is either flush with the pad's edge
+  // or at least the min. copper gap in from the pad's corner. Rounded SMD pads must exit centred, like oval pads.
+  if (opts.permit.smt) for (const p of B.pads) {
+    if (!p.smd) continue;
+    const a = p.axis * D2R, ux = Math.cos(a), uy = Math.sin(a), hx = p.dx / 2, hy = p.dy / 2;
+    for (const s of B.segs) {
+      const i1 = insidePad(s.x1, s.y1, p), i2 = insidePad(s.x2, s.y2, p);
+      if (i1 === i2) continue;
+      const [ax, ay, bx, by] = i1 ? [s.x1, s.y1, s.x2, s.y2] : [s.x2, s.y2, s.x1, s.y1];
+      const [ex, ey] = padEdgeCrossing(p, ax, ay, bx, by), where = `${p.el} pin ${p.name}`;
+      // exit point in the pad's own frame; which side did the trace cross?
+      const eu = (ex - p.cx) * ux + (ey - p.cy) * uy, ev = -(ex - p.cx) * uy + (ey - p.cy) * ux;
+      const uSide = Math.abs(eu) / hx >= Math.abs(ev) / hy;          // crossed a side square to the u axis
+      const normal = uSide ? p.axis : p.axis + 90;                  // direction straight out of that side
+      const t = uSide ? ev : eu, half = uSide ? hy : hx;            // position along the side, half its length
+      const dev = axisDiff(dirDeg(ax, ay, bx, by), normal);
+      if (dev > opts.exitTol) {
+        add("error", "Angled exit from SMD pad", `Trace leaves the SMD pad at ${dev.toFixed(0)}° to the pad edge's square. Leave straight out of the pad (90° to its edge), then turn.`, where, ex, ey);
+        continue;
+      }
+      const overhang = Math.abs(t) + s.width / 2 - half;            // > 0: trace is wider than the pad there
+      if (overhang > 0.5 * MIL) {
+        add("error", "Trace extends past SMD pad edge", `The trace leaving this pad sticks out ${milTxt(overhang)} past the pad's edge. Keep the whole trace width within the side it leaves from.`, where, ex, ey);
+        continue;
+      }
+      if (Math.abs(t) <= opts.centreTol) continue;                  // centred: always fine
+      if (p.round > 0) {
+        add("error", "Off-centre exit from SMD pad", `This SMD pad has rounded corners, so the trace must leave from the centre of a side. It is ${milTxt(Math.abs(t))} off centre.`, where, ex, ey);
+        continue;
+      }
+      const step = -overhang;                                       // gap from the trace's edge to the pad's corner
+      if (step > 0.5 * MIL && step < opts.minGap - 1e-4)
+        add("error", "Small step at SMD pad edge",
+          `The trace's edge sits ${milTxt(step)} in from the pad's corner (mill min. ${milTxt(opts.minGap)}), leaving a step too small for the milling bit. Line the trace up flush with the pad edge, or move it at least ${milTxt(opts.minGap)} in.`, where, ex, ey);
+    }
+  }
+
   // --- Rule: inside corner of a trace bend too close to a pad ---------------
-  // At each bend, the inside corner of the copper is offset from the centre line.
-  // Measure from that corner to every nearby pad (any net, including the pad the trace came from).
   for (const n of bendNodes(B)) {
     const [u1, u2] = n.dirs, w = n.width;
     let bx = u1[0] + u2[0], by = u1[1] + u2[1]; const bl = hyp(bx, by);
     if (bl < 1e-6) continue;                     // straight through, no bend
     bx /= bl; by /= bl;
-    const theta = Math.acos(Math.max(-1, Math.min(1, u1[0] * u2[0] + u1[1] * u2[1])));   // interior angle
+    const theta = Math.acos(Math.max(-1, Math.min(1, u1[0] * u2[0] + u1[1] * u2[1])));
     const off = (w / 2) / Math.sin(theta / 2);
     const cx = n.x + bx * off, cy = n.y + by * off;
     for (const p of B.pads) {
@@ -536,11 +666,16 @@ function runChecks(B, opts) {
         add("error", "Trace corner too close to pad",
           `Inside corner of this bend is ${milTxt(g)} from ${p.el} pin ${p.name} (mill min. ${milTxt(opts.minGap)}). The milling bit can't fit into that gap; move the bend further from the pad.`,
           `${p.el} pin ${p.name}`, n.x, n.y);
+      // The bend sits just outside its own pad, so the inside corner of the turn falls inside the pad copper.
+      // The turned trace then meets the pad edge at an angle: a wedge the milling bit can't cut.
+      else if (g <= 0 && p.net === n.net && !insidePad(n.x, n.y, p))
+        add("error", "Pinch point at pad (tight turn)",
+          `Trace turns only ${milTxt(Math.max(0, pointPadGap(n.x, n.y, 0, p)))} past the edge of ${p.el} pin ${p.name}, so the turn starts against the pad. The wedge between the trace and the pad is too tight for the milling bit; run straight out further before turning.`,
+          `${p.el} pin ${p.name}`, n.x, n.y);
     }
   }
 
   // --- Rule: clearance between different nets (milling limit) ---------------
-  // Fusion's DRC also checks this, but only against whatever clearance its rules file is set to.
   const gapMsg = (g, what) => `${what} are ${milTxt(Math.max(0, g))} apart (mill min. ${milTxt(opts.minGap)}).`;
   for (let i = 0; i < B.segs.length; i++) for (let j = i + 1; j < B.segs.length; j++) {
     const a = B.segs[i], b = B.segs[j];
@@ -551,84 +686,37 @@ function runChecks(B, opts) {
       add("error", g <= 0 ? "Traces touch (short)" : "Traces too close", gapMsg(g, `Traces ${a.net} and ${b.net}`), `${a.net} / ${b.net}`, x, y);
     }
   }
-  for (const p of B.pads) {
-    const core = padCore(p);
-    for (const s of B.segs) {
-      if (p.net !== null && s.net === p.net) continue;
-      const c = segSegClosest(s, core), g = c.d - s.width / 2 - p.w / 2;
-      if (g < opts.minGap - 1e-4)
-        add("error", g <= 0 ? "Trace touches pad (short)" : "Trace too close to pad",
-          gapMsg(g, `Trace ${s.net} and ${p.el} pin ${p.name}`), `${p.el} pin ${p.name}`,
-          s.x1 + (s.x2 - s.x1) * c.ta, s.y1 + (s.y2 - s.y1) * c.ta);
-    }
+  for (const p of B.pads) for (const s of B.segs) {
+    if (p.net !== null && s.net === p.net) continue;
+    if (hyp(p.x - (s.x1 + s.x2) / 2, p.y - (s.y1 + s.y2) / 2) > segLen(s) / 2 + p.L + 2) continue;
+    const r = padGapSeg(p, s);
+    if (r.g < opts.minGap - 1e-4)
+      add("error", r.g <= 0 ? "Trace touches pad (short)" : "Trace too close to pad",
+        gapMsg(r.g, `Trace ${s.net} and ${p.el} pin ${p.name}`), `${p.el} pin ${p.name}`, r.x, r.y, undefined, { g: r.g });
   }
   for (let i = 0; i < B.pads.length; i++) for (let j = i + 1; j < B.pads.length; j++) {
     const p = B.pads[i], q = B.pads[j];
+    if (B.layer === "Top" && !p.smd && !q.smd) continue;        // through-hole pairs are checked once, on Bottom
     if (p.net !== null && p.net === q.net) continue;
     if (hyp(p.x - q.x, p.y - q.y) > (p.L + q.L) / 2 + 1) continue;
-    const g = segSegClosest(padCore(p), padCore(q)).d - (p.w + q.w) / 2;
+    const g = padGapPad(p, q);
     if (g < opts.minGap - 1e-4)
       add("error", "Pads too close", gapMsg(g, `${p.el} pin ${p.name} and ${q.el} pin ${q.name}`), `${p.el} / ${q.el}`, (p.x + q.x) / 2, (p.y + q.y) / 2);
   }
 
-  if (!B.segs.length)
+  if (B.layer === "Bottom" && !B.segs.length)
     add("error", "No traces on Bottom", "No copper traces were found on the Bottom layer. Is the board routed?", "whole board", 0, 0);
 
-  // --- Rule: surface-mount parts (skipped on boards with a Top layer) ---------
-  const hasTop = B.topSegs.length > 0;
-  if (!hasTop) for (const el of B.elements) if (el.isSMD) {
-    const sm = B.smds.find(q => q.el === el.name);
-    add("error", "Surface-mount part", "This part uses SMD pads. Replace it with a through-hole version.", el.name, sm ? sm.x : el.x, sm ? sm.y : el.y);
-  }
-
-  // --- Rule: mounting holes -----------------------------------------------------
-  const hasOutline = B.outline.length > 0;
+  // --- Rule: copper inside a mounting hole's keep-out ---------------------------
   for (const h of B.holes) {
-    const r = h.drill / 2, where = `${h.el} (Ø${h.drill} mm)`;
-    if (hasOutline) {
-      if (!insideOutline(B.outline, h.x, h.y)) {
-        add("error", "Hole outside board", "Mounting hole centre is outside the board outline.", where, h.x, h.y);
-        continue;
-      }
-      const e = Math.min(...B.outline.map(o => pointSegDist(h.x, h.y, o.x1, o.y1, o.x2, o.y2).d)) - r;
-      if (e < opts.holeEdge - 1e-4)
-        add("error", "Hole too close to board edge", `Hole edge is ${e.toFixed(2)} mm from the board edge (min. ${opts.holeEdge} mm).`, where, h.x, h.y);
-    }
-    const keep = r + opts.holeKeep;   // keep-out radius from hole centre
-    let worstCopper = Infinity, worstPart = null, worstPartGap = Infinity;
-    for (const s of B.segs) worstCopper = Math.min(worstCopper, pointSegDist(h.x, h.y, s.x1, s.y1, s.x2, s.y2).d - s.width / 2 - r);
-    for (const p of B.pads) if (p.el !== h.el) worstCopper = Math.min(worstCopper, pointPadGap(h.x, h.y, r, p));
-    for (const el of B.elements) {
-      if (el.name === h.el || el.isHole || !el.box) continue;
-      const g = pointQuadDist(h.x, h.y, el.box) - r;
-      if (g < worstPartGap) { worstPartGap = g; worstPart = el.name; }
-    }
-    if (worstCopper < opts.holeKeep - 1e-4)
-      add("error", "Copper too close to mounting hole", `Copper is ${Math.max(0, worstCopper).toFixed(2)} mm from the hole edge (min. ${opts.holeKeep} mm). Screw heads and washers need this space.`, where, h.x, h.y);
-    if (worstPartGap < opts.holeKeep - 1e-4)
-      add("warning", "Part too close to mounting hole", `${worstPart} is ${Math.max(0, worstPartGap).toFixed(2)} mm from the hole edge (min. ${opts.holeKeep} mm).`, where, h.x, h.y);
-  }
-  // Hole count (pin it to the first hole, or the board centre)
-  {
-    const n = B.holes.length, exp = opts.holeCount;
-    const h0 = B.holes[0] || { x: 0, y: 0 };
-    if (n !== exp)
-      add("warning", "Mounting hole count", `Found ${n} mounting hole${n === 1 ? "" : "s"}; expected ${exp}.`, "whole board", h0.x, h0.y);
-    else
-      add("info", "Mounting holes", `Found ${n} mounting hole${n === 1 ? "" : "s"}, as expected.`, "whole board", h0.x, h0.y);
-  }
-
-  // --- Rule: parts overlapping each other ----------------------------------------
-  const parts = B.elements.filter(e => e.box && !e.isHole);
-  for (let i = 0; i < parts.length; i++) for (let j = i + 1; j < parts.length; j++) {
-    const a = parts[i], b = parts[j];
-    if (hyp(a.x - b.x, a.y - b.y) > 60) continue;
-    const depth = quadOverlap(a.box, b.box);
-    if (depth > 0.1) {
-      const cx = (a.box.reduce((t, p) => t + p[0], 0) + b.box.reduce((t, p) => t + p[0], 0)) / 8;
-      const cy = (a.box.reduce((t, p) => t + p[1], 0) + b.box.reduce((t, p) => t + p[1], 0)) / 8;
-      add("warning", "Parts overlap", `${a.name} and ${b.name} overlap by ${depth.toFixed(2)} mm. Check the parts physically fit side by side.`, `${a.name} / ${b.name}`, cx, cy);
-    }
+    const r = h.drill / 2;
+    let worst = Infinity;
+    for (const s of B.segs) worst = Math.min(worst, pointSegDist(h.x, h.y, s.x1, s.y1, s.x2, s.y2).d - s.width / 2 - r);
+    // through-hole pads are on both layers: count them once, on Bottom
+    for (const p of B.pads) if (p.el !== h.el && (B.layer === "Bottom" || p.side === B.layer)) worst = Math.min(worst, pointPadGap(h.x, h.y, r, p));
+    if (worst < opts.holeKeep - 1e-4)
+      add("error", "Copper too close to mounting hole", `Copper is ${Math.max(0, worst).toFixed(2)} mm from the hole edge. Screw heads and washers need this space.`,
+        `${h.el} (Ø${h.drill} mm)`, h.x, h.y);
   }
 
   // --- Rule: trace widths ---------------------------------------------------
@@ -647,40 +735,6 @@ function runChecks(B, opts) {
       "whole board", (s0.x1 + s0.x2) / 2, (s0.y1 + s0.y2) / 2);
   }
 
-  // --- Rule: non-oval pads --------------------------------------------
-  for (const el of B.elements) {
-    const odd = el.pads.filter(p => p.shape !== "long" && p.shape !== "offset");
-    if (odd.length) {
-      const shapes = [...new Set(odd.map(p => p.shape))].join("/");
-      const p0 = odd[0];
-      add("warning", "Round/square pads",
-        `${odd.length} of ${el.pads.length} pads are ${shapes}, not oval (long).`, el.name, p0.x, p0.y);
-    }
-  }
-
-  // --- Rule: part rotation not a multiple of 90° ------------------------
-  for (const el of B.elements) {
-    const a = ((el.rot.angle % 90) + 90) % 90;
-    if (Math.min(a, 90 - a) > 0.01)
-    {
-      // circle the whole part: centre and radius of its outline box
-      const bx = el.box ? el.box.reduce((t, q) => t + q[0], 0) / 4 : el.x, by = el.box ? el.box.reduce((t, q) => t + q[1], 0) / 4 : el.y;
-      const rr = el.box ? Math.max(...el.box.map(q => hyp(q[0] - bx, q[1] - by))) : 3;
-      add("warning", "Part rotated off-grid", `Part is rotated ${el.rotText}. Set it to exactly 0/90/180/270° in the part's properties so its pins and traces stay on grid.`, el.name, bx, by, rr);
-    }
-  }
-
-  // --- Rule: copper on Top / vias / unrouted (single-sided) -------------
-  if (B.topSegs.length) {
-    const nets = [...new Set(B.topSegs.map(t => t.net))];
-    const t0 = B.topSegs[0];
-    add("error", "Board has a Top layer",
-      `Copper Cop only checks single-sided boards (routed on Bottom). This board has copper on Top (${nets.length} net${nets.length > 1 ? "s" : ""}: ${nets.slice(0, 6).join(", ")}${nets.length > 6 ? ", …" : ""}). All Top-layer checks, including surface-mount parts, are skipped. Only the Bottom layer was checked.`,
-      "whole board", (t0.x1 + t0.x2) / 2, (t0.y1 + t0.y2) / 2);
-    issues[issues.length - 1].pin = true;
-    issues[issues.length - 1].noMark = true;     // Top copper isn't drawn, so there's nothing to circle
-  }
-
   // --- Note: copper pours (only the clearance setting is checked) ------------
   for (const pr of B.pours) {
     const eff = Math.max(pr.isolate, B.ruleClear);
@@ -690,12 +744,10 @@ function runChecks(B, opts) {
       : `Pour on ${pr.net} keeps ${milTxt(eff)} from other copper. Pour shapes aren't checked here; check thin slivers and gaps by eye.`,
       pr.net, cx, cy);
   }
-  for (const a of B.airwires)
-    add("warning", "Unrouted connection", "Airwire still present. If this is a planned jumper, add a 0 Ω resistor/jumper part in the schematic and route to its pads.", a.net, (a.x1 + a.x2) / 2, (a.y1 + a.y2) / 2);
 
   // --- Rule: small jogs ("jigs") in a trace ---------------------------------
-  // Walk along a trace from a segment through a few short pieces. If it comes back to the same
-  // heading, shifted sideways by less than a trace width, the detour is pointless: straighten it.
+  // Walk along a trace through a few short pieces. If it comes back to the same heading,
+  // shifted sideways by a small amount, the detour is pointless: straighten it.
   {
     const ends = new Map();
     for (const s of B.segs) if (segLen(s) > 1e-4) for (const [x, y] of [[s.x1, s.y1], [s.x2, s.y2]]) {
@@ -706,7 +758,7 @@ function runChecks(B, opts) {
       if (segLen(A) < 1e-4) continue;
       for (const [ex, ey] of [[A.x1, A.y1], [A.x2, A.y2]]) {
         const [sx0, sy0] = other(A, ex, ey);
-        const hx = (ex - sx0) / segLen(A), hy = (ey - sy0) / segLen(A);      // heading of A, into the node
+        const hx = (ex - sx0) / segLen(A), hy = (ey - sy0) / segLen(A);
         let px = ex, py = ey, prev = A, run = 0, mid = [];
         for (let step = 0; step < 4; step++) {
           const at = ends.get(A.net + "|" + key(px, py)) || [];
@@ -716,10 +768,11 @@ function runChecks(B, opts) {
           const nx = (qx - px) / L, ny = (qy - py) / L;
           if (mid.length && Math.abs(nx * hy - ny * hx) < 0.01 && nx * hx + ny * hy > 0) {
             const off = Math.abs((px - ex) * hy - (py - ey) * hx);           // sideways shift
-            if (off < opts.jogWarn - 1e-4) {
+            // a 0.0 mil "jog" is a bump that comes back in line: ignored
+            if (off >= 0.05 * MIL && off < opts.jogWarn - 1e-4) {
               const m = mid[Math.floor(mid.length / 2)], err = off < opts.jogErr - 1e-4;
               add(err ? "error" : "warning", "Small jog in trace",
-                `Trace steps sideways by ${milTxt(off)} over ${run.toFixed(2)} mm, then carries on in the same direction (${err ? "under " + milTxt(opts.jogErr) : "under " + milTxt(opts.jogWarn)}). Straighten it.`,
+                `Trace steps sideways by ${milTxt(off)} over ${run.toFixed(2)} mm, then carries on in the same direction (under ${milTxt(err ? opts.jogErr : opts.jogWarn)}). Straighten it.`,
                 A.net, (m.x1 + m.x2) / 2, (m.y1 + m.y2) / 2);
             }
             break;
@@ -741,7 +794,7 @@ function runChecks(B, opts) {
   }
 
   // --- Rule: pinch points / tight turns (acute junctions) --------------------
-  const nodes = new Map();          // net|point -> list of outgoing directions
+  const nodes = new Map();
   for (const s of B.segs) {
     if (segLen(s) < 1e-4) continue;
     for (const [ax, ay, bx, by] of [[s.x1, s.y1, s.x2, s.y2], [s.x2, s.y2, s.x1, s.y1]]) {
@@ -759,7 +812,6 @@ function runChecks(B, opts) {
     if (minA < 89.5)
       add("error", "Pinch point (tight turn)", `Traces meet at ${minA.toFixed(0)}°. The milling bit can't cut into a corner tighter than 90°; open it up to 90° or wider.`, n.net, n.x, n.y);
   }
-  // T-junctions: an end point landing in the middle of another segment of the same net
   for (const s of B.segs) for (const [px, py, qx, qy] of [[s.x1, s.y1, s.x2, s.y2], [s.x2, s.y2, s.x1, s.y1]]) {
     if (padAt(px, py)) continue;
     for (const o of B.segs) {
@@ -775,8 +827,113 @@ function runChecks(B, opts) {
   // --- Rule: same-net fold-back closer than the mill can cut ----------
   foldbacks(B, opts.minGap).forEach(f =>
     add("error", "Trace folds back too close", `Two parts of the same trace are ${milTxt(f.gap)} apart (mill min. ${milTxt(opts.minGap)}). Fusion's DRC ignores this because it's the same net.`, f.net, f.x, f.y));
+}
 
-  return dedupe(issues);
+// A circle around a whole part (centre and radius of its outline box)
+function partCircle(el) {
+  if (!el.box) return { x: el.x, y: el.y, r: 3 };
+  const x = el.box.reduce((t, q) => t + q[0], 0) / 4, y = el.box.reduce((t, q) => t + q[1], 0) / 4;
+  return { x, y, r: Math.max(...el.box.map(q => hyp(q[0] - x, q[1] - y))) };
+}
+
+// ---------------------------------------------------------------------------
+// Board-level rules (not tied to one copper layer). Tagged "Board" unless noted;
+// the View menu's layer switches never hide them.
+// ---------------------------------------------------------------------------
+function boardChecks(B, opts, add, hasTop) {
+  // --- The board has a Top layer: pinned first, never hidden ------------------
+  if (hasTop) {
+    const nets = [...new Set(B.topSegs.map(t => t.net).concat(B.pours.filter(p => p.layer === "Top").map(p => p.net)))];
+    add("error", "Board has a Top layer",
+      `This board has copper on the Top layer (${nets.length} net${nets.length === 1 ? "" : "s"}: ${nets.slice(0, 6).join(", ")}${nets.length > 6 ? ", …" : ""}). Copper Cop is set up for single-sided boards. Top-layer issues are checked too and listed with "Top:".`,
+      "whole board", 0, 0, undefined, { layer: "Top", pin: true, noMark: true });
+  }
+
+  // --- Surface-mount parts (tagged with the side their pads are on) -----------
+  for (const el of B.elements) if (el.isSMD) {
+    const sm = el.smdPads[0], c = partCircle(el);
+    add("error", "Surface-mount part", "This part uses SMD pads. Replace it with a through-hole version.", el.name,
+      c.x, c.y, c.r, { layer: sm ? sm.side : "Top" });
+  }
+
+  // --- Component holes smaller than the minimum (default 1 mm) -----------------
+  for (const el of B.elements) {
+    const small = el.pads.filter(p => p.drill > 0 && p.drill < opts.minHole - 1e-6).map(p => p.drill)
+      .concat(B.holes.filter(h => h.el === el.name && h.drill < opts.minHole - 1e-6).map(h => h.drill));
+    if (!small.length) continue;
+    const sizes = [...new Set(small.map(d => milTxt(d)))].join(", "), c = partCircle(el);
+    add("error", "Hole too small", `${small.length} hole${small.length === 1 ? " is" : "s are"} ${sizes} (min. ${milTxt(opts.minHole)}). Use a footprint with larger holes.`,
+      el.name, c.x, c.y, c.r);
+  }
+
+  // --- Mounting holes: position, edge distance, nearby parts, count ------------
+  const hasOutline = B.outline.length > 0;
+  for (const h of B.holes) {
+    const r = h.drill / 2, where = `${h.el} (Ø${h.drill} mm)`;
+    if (hasOutline) {
+      if (!insideOutline(B.outline, h.x, h.y)) {
+        add("error", "Hole outside board", "Mounting hole centre is outside the board outline.", where, h.x, h.y);
+        continue;
+      }
+      const e = Math.min(...B.outline.map(o => pointSegDist(h.x, h.y, o.x1, o.y1, o.x2, o.y2).d)) - r;
+      if (e < opts.holeEdge - 1e-4)
+        add("error", "Hole too close to board edge", `Hole edge is ${e.toFixed(2)} mm from the board edge (min. ${opts.holeEdge} mm).`, where, h.x, h.y);
+    }
+    let worstPart = null, worstPartGap = Infinity;
+    for (const el of B.elements) {
+      if (el.name === h.el || el.isHole || !el.box) continue;
+      const g = pointQuadDist(h.x, h.y, el.box) - r;
+      if (g < worstPartGap) { worstPartGap = g; worstPart = el.name; }
+    }
+    if (worstPartGap < opts.holeKeep - 1e-4)
+      add("warning", "Part too close to mounting hole", `${worstPart} is ${Math.max(0, worstPartGap).toFixed(2)} mm from the hole edge (min. ${opts.holeKeep} mm).`, where, h.x, h.y);
+  }
+  {
+    const n = B.holes.length, exp = opts.holeCount;
+    const h0 = B.holes[0] || { x: 0, y: 0 };
+    if (n !== exp)
+      add("warning", "Mounting hole count", `Found ${n} mounting hole${n === 1 ? "" : "s"}; expected ${exp}.`, "whole board", h0.x, h0.y);
+    else
+      add("info", "Mounting holes", `Found ${n} mounting hole${n === 1 ? "" : "s"}, as expected.`, "whole board", h0.x, h0.y);
+  }
+
+  // --- Parts overlapping each other (allowance in Settings) -------------------
+  const parts = B.elements.filter(e => e.box && !e.isHole);
+  for (let i = 0; i < parts.length; i++) for (let j = i + 1; j < parts.length; j++) {
+    const a = parts[i], b = parts[j];
+    if (a.side !== b.side) continue;                 // e.g. an SMD part on Bottom under a part on Top
+    if (hyp(a.x - b.x, a.y - b.y) > 60) continue;
+    const depth = quadOverlap(a.box, b.box);
+    if (depth > opts.overlapAllow + 1e-6) {
+      const cx = (a.box.reduce((t, p) => t + p[0], 0) + b.box.reduce((t, p) => t + p[0], 0)) / 8;
+      const cy = (a.box.reduce((t, p) => t + p[1], 0) + b.box.reduce((t, p) => t + p[1], 0)) / 8;
+      add("warning", "Parts overlap", `${a.name} and ${b.name} overlap by ${milTxt(depth)} (allowed ${milTxt(opts.overlapAllow)}). Check the parts physically fit side by side.`, `${a.name} / ${b.name}`, cx, cy,
+        undefined, a.smdOnly && b.smdOnly ? { layer: a.side } : undefined);
+    }
+  }
+
+  // --- Non-oval through-hole pads ------------------------------------------------
+  for (const el of B.elements) {
+    const odd = el.pads.filter(p => p.shape !== "long" && p.shape !== "offset");
+    if (odd.length) {
+      const shapes = [...new Set(odd.map(p => p.shape))].join("/");
+      add("warning", "Round/square pads", `${odd.length} of ${el.pads.length} pads are ${shapes}, not oval (long).`, el.name, odd[0].x, odd[0].y);
+    }
+  }
+
+  // --- Part rotation not a multiple of 90° (circle the whole part) -------------
+  for (const el of B.elements) {
+    const a = ((el.rot.angle % 90) + 90) % 90;
+    if (Math.min(a, 90 - a) > 0.01) {
+      const c = partCircle(el);
+      add("warning", "Part rotated off-grid", `Part is rotated ${el.rotText}. Set it to exactly 0/90/180/270° in the part's properties so its pins and traces stay on grid.`, el.name, c.x, c.y, c.r,
+        el.smdOnly ? { layer: el.side } : undefined);
+    }
+  }
+
+  // --- Unrouted connections -----------------------------------------------------
+  for (const a of B.airwires)
+    add("warning", "Unrouted connection", "Airwire still present. If this is a planned jumper, add a 0 Ω resistor/jumper part in the schematic and route to its pads.", a.net, (a.x1 + a.x2) / 2, (a.y1 + a.y2) / 2);
 }
 
 // Bends: points where exactly two segments of the same net meet, outside any pad.
@@ -793,23 +950,27 @@ function bendNodes(B) {
   return [...m.values()].filter(n => n.dirs.length === 2 && !B.pads.some(p => insidePad(n.x, n.y, p)));
 }
 
-// Follow a trace outward from point (x,y) while it stays straight.
-// Reports where it first bends, or which pad it runs straight into.
-function straightRunFrom(B, seg, x, y, len) {
+// Where a segment running from (ax,ay) inside pad p to (bx,by) outside it crosses the pad edge (bisection)
+function padEdgeCrossing(p, ax, ay, bx, by) {
+  let lo = 0, hi = 1;
+  for (let k = 0; k < 30; k++) { const m = (lo + hi) / 2; insidePad(ax + (bx - ax) * m, ay + (by - ay) * m, p) ? lo = m : hi = m; }
+  return [ax + (bx - ax) * lo, ay + (by - ay) * lo];
+}
+
+// Follow a trace outward from (x,y) while it stays straight: does it run straight into a pad?
+function runsStraightIntoPad(B, seg, x, y) {
   const dir = dirDeg(seg.x1, seg.y1, seg.x2, seg.y2);
   let cur = seg, px = x, py = y;
   for (let guard = 0; guard < 50; guard++) {
-    const endPad = B.pads.find(p => insidePad(px, py, p));
-    if (endPad) return { len, bends: false, endPad, x: px, y: py };
+    if (B.pads.some(p => insidePad(px, py, p))) return true;
     const next = B.segs.filter(o => o !== cur && o.net === cur.net && segLen(o) > 1e-4 &&
       (hyp(o.x1 - px, o.y1 - py) < 1e-3 || hyp(o.x2 - px, o.y2 - py) < 1e-3));
-    if (next.length !== 1) return { len, bends: false, x: px, y: py };
+    if (next.length !== 1) return false;
     const o = next[0];
-    const far = hyp(o.x1 - px, o.y1 - py) < 1e-3 ? [o.x2, o.y2] : [o.x1, o.y1];
-    if (axisDiff(dirDeg(o.x1, o.y1, o.x2, o.y2), dir) > 0.5) return { len, bends: true, x: px, y: py };
-    len += hyp(far[0] - px, far[1] - py); px = far[0]; py = far[1]; cur = o;
+    if (axisDiff(dirDeg(o.x1, o.y1, o.x2, o.y2), dir) > 0.5) return false;     // it bends first
+    [px, py] = hyp(o.x1 - px, o.y1 - py) < 1e-3 ? [o.x2, o.y2] : [o.x1, o.y1]; cur = o;
   }
-  return { len, bends: false, x: px, y: py };
+  return false;
 }
 
 // Close approaches between two parts of the same net that are far apart *along* the trace.
@@ -868,12 +1029,12 @@ function foldbacks(B, minGap) {
 
 function dedupe(issues) {
   const kept = [];
-  for (const it of issues) {
-    if (!kept.some(k => k.rule === it.rule && k.where === it.where && hyp(k.x - it.x, k.y - it.y) < 1.0)) kept.push(it);
-  }
-  const rank = { error: 0, warning: 1, info: 2 };
-  kept.sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || rank[a.severity] - rank[b.severity] || a.rule.localeCompare(b.rule) || a.where.localeCompare(b.where, undefined, { numeric: true }));
-  kept.forEach((it, i) => it.n = i + 1);
+  for (const it of issues)
+    if (!kept.some(k => k.rule === it.rule && k.where === it.where && k.layer === it.layer && hyp(k.x - it.x, k.y - it.y) < 1.0)) kept.push(it);
+  // Order: pinned first; then errors, warnings, notes; within each, Top before Bottom
+  const rank = { error: 0, warning: 1, info: 2 }, lrank = { Top: 0, Bottom: 1, Board: 2 };
+  kept.sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || rank[a.severity] - rank[b.severity] || lrank[a.layer] - lrank[b.layer] ||
+    a.rule.localeCompare(b.rule) || a.where.localeCompare(b.where, undefined, { numeric: true }));
   return kept;
 }
 
@@ -882,7 +1043,7 @@ function dedupe(issues) {
    ===================================================================== */
 
 const cv = document.getElementById("cv"), ctx = cv.getContext("2d");
-let B = null, issues = [], view = { s: 10, ox: 0, oy: 0 }, active = -1;
+let B = null, issues = [], shown = [], view = { s: 10, ox: 0, oy: 0 }, active = -1;
 
 function bounds() {
   const xs = [], ys = [];
@@ -906,7 +1067,7 @@ function stadium(p) {
   ctx.save(); ctx.translate(sx(p.cx), sy(p.cy)); ctx.rotate(a);
   const w = p.w * view.s, L = p.L * view.s, h = (L - w) / 2;
   ctx.beginPath();
-  if (p.shape === "square") ctx.rect(-w / 2, -w / 2, w, w);
+  if (isRect(p)) { const dx = (p.dx ?? p.w) * view.s, dy = (p.dy ?? p.w) * view.s; ctx.rect(-dx / 2, -dy / 2, dx, dy); }
   else if (p.shape === "octagon") {
     for (let k = 0; k < 8; k++) { const t = (k + 0.5) * Math.PI / 4, R = w / 2 / Math.cos(Math.PI / 8);
       k ? ctx.lineTo(R * Math.cos(t), R * Math.sin(t)) : ctx.moveTo(R * Math.cos(t), R * Math.sin(t)); }
@@ -929,29 +1090,41 @@ function draw() {
   // outline
   ctx.strokeStyle = "#d8c24a"; ctx.lineWidth = 1.5;
   B.outline.forEach(w => { ctx.beginPath(); ctx.moveTo(sx(w.x1), sy(w.y1)); ctx.lineTo(sx(w.x2), sy(w.y2)); ctx.stroke(); });
-  // copper pours (outline only)
-  ctx.fillStyle = "rgba(40,150,230,0.18)"; ctx.strokeStyle = "rgba(40,150,230,0.6)"; ctx.lineWidth = 1;
-  B.pours.forEach(pr => { ctx.beginPath(); pr.verts.forEach(([x, y], k) => k ? ctx.lineTo(sx(x), sy(y)) : ctx.moveTo(sx(x), sy(y)));
-    ctx.closePath(); ctx.fill(); ctx.stroke(); });
-  // traces
-  ctx.strokeStyle = "rgba(40,150,230,0.9)"; ctx.lineCap = "round";
-  B.segs.forEach(s => { ctx.lineWidth = Math.max(1, s.width * view.s); ctx.beginPath();
-    ctx.moveTo(sx(s.x1), sy(s.y1)); ctx.lineTo(sx(s.x2), sy(s.y2)); ctx.stroke(); });
-  // Top-layer copper is never drawn (single-sided checker); the Top-layer error still lists it.
+  const V = viewOpts();
+  const pour = (pr, fill, line) => { ctx.fillStyle = fill; ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.beginPath();
+    pr.verts.forEach(([x, y], k) => k ? ctx.lineTo(sx(x), sy(y)) : ctx.moveTo(sx(x), sy(y))); ctx.closePath(); ctx.fill(); ctx.stroke(); };
+  const traces = (list, col) => { ctx.strokeStyle = col; ctx.lineCap = "round";
+    list.forEach(s => { ctx.lineWidth = Math.max(1, s.width * view.s); ctx.beginPath();
+      ctx.moveTo(sx(s.x1), sy(s.y1)); ctx.lineTo(sx(s.x2), sy(s.y2)); ctx.stroke(); }); };
+  // Bottom copper (blue; View › Bottom layer turns it off)
+  if (V.bottom) {
+    B.pours.filter(p => p.layer === "Bottom").forEach(pr => pour(pr, "rgba(40,150,230,0.18)", "rgba(40,150,230,0.6)"));
+    traces(B.segs, "rgba(40,150,230,0.9)");
+  }
+  // Top copper (red, drawn over Bottom; View › Top layer turns it off)
+  if (V.top) {
+    B.pours.filter(p => p.layer === "Top").forEach(pr => pour(pr, "rgba(220,60,60,0.16)", "rgba(220,60,60,0.6)"));
+    traces(B.topSegs, "rgba(220,60,60,0.72)");
+  }
   ctx.strokeStyle = "rgba(230,230,90,0.8)"; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
   B.airwires.forEach(s => { ctx.beginPath(); ctx.moveTo(sx(s.x1), sy(s.y1)); ctx.lineTo(sx(s.x2), sy(s.y2)); ctx.stroke(); });
   ctx.setLineDash([]);
   // pads + drills
-  ctx.fillStyle = "#2fbf83"; B.pads.forEach(stadium);
+  const tht = B.pads.filter(p => !p.smd);
+  ctx.fillStyle = "#2fbf83"; tht.forEach(stadium);
   ctx.fillStyle = "#0e1013";
-  B.pads.forEach(p => { ctx.beginPath(); ctx.arc(sx(p.x), sy(p.y), Math.max(0.5, p.drill / 2 * view.s), 0, 2 * Math.PI); ctx.fill(); });
-  // SMD pads (shouldn't be here at all)
+  tht.forEach(p => { ctx.beginPath(); ctx.arc(sx(p.x), sy(p.y), Math.max(0.5, p.drill / 2 * view.s), 0, 2 * Math.PI); ctx.fill(); });
+  // SMD pads (orange); Top ones follow View › Top layer
   ctx.fillStyle = "rgba(255,120,60,0.85)";
-  if (!B.topSegs.length) B.smds.forEach(m => { ctx.save(); ctx.translate(sx(m.x), sy(m.y)); ctx.rotate(-m.axis * D2R);
-    ctx.fillRect(-m.dx * view.s / 2, -m.dy * view.s / 2, m.dx * view.s, m.dy * view.s); ctx.restore(); });
+  B.pads.filter(p => p.smd && (p.side === "Bottom" ? V.bottom : V.top)).forEach(stadium);
+  // vias (copper ring + drill)
+  B.vias.forEach(v => { const R = (v.d || v.drill * 2) / 2;
+    ctx.fillStyle = "#2fbf83"; ctx.beginPath(); ctx.arc(sx(v.x), sy(v.y), Math.max(1.5, R * view.s), 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = "#0e1013"; ctx.beginPath(); ctx.arc(sx(v.x), sy(v.y), Math.max(0.5, v.drill / 2 * view.s), 0, 2 * Math.PI); ctx.fill(); });
   // part outlines
-  ctx.strokeStyle = "rgba(200,200,200,0.18)"; ctx.lineWidth = 1;
-  B.elements.forEach(e => { if (!e.box || e.isHole) return; ctx.beginPath();
+  ctx.strokeStyle = "rgba(215,215,215,0.26)"; ctx.lineWidth = 1.3;
+  const partShown = e => !e.smdOnly || (e.side === "Top" ? V.top : V.bottom);
+  B.elements.forEach(e => { if (!e.box || e.isHole || !partShown(e)) return; ctx.beginPath();
     e.box.forEach(([x, y], k) => k ? ctx.lineTo(sx(x), sy(y)) : ctx.moveTo(sx(x), sy(y))); ctx.closePath(); ctx.stroke(); });
   // mounting holes + keep-out ring
   const o = options();
@@ -963,13 +1136,13 @@ function draw() {
     ctx.setLineDash([]);
   });
   // names
-  if (document.getElementById("showNames").checked && view.s > 4) {
+  if (V.names && view.s > 4) {
     ctx.fillStyle = "rgba(230,232,235,0.65)"; ctx.font = `${Math.min(14, Math.max(9, view.s * 1.0))}px system-ui`;
     ctx.textAlign = "center";
-    B.elements.forEach(e => ctx.fillText(e.name, sx(e.x), sy(e.y) - Math.max(10, view.s * 2.2)));
+    B.elements.filter(partShown).forEach(e => ctx.fillText(e.name, sx(e.x), sy(e.y) - Math.max(10, view.s * 2.2)));
   }
-  // issues: circles like the hand markup
-  issues.forEach((it, i) => {
+  // issues: circles like the hand markup (only the ones the View menu shows)
+  shown.forEach((it, i) => {
     if (it.noMark) return;
     const col = it.severity === "error" ? "#ff4d4d" : it.severity === "warning" ? "#ffb020" : "#e05cff";
     const R = Math.max(10, (it.r ? it.r + 0.5 : 1.6) * view.s) * (i === active ? (it.r ? 1.1 : 1.5) : 1);
@@ -982,7 +1155,7 @@ function draw() {
   if (flashStart && active >= 0) {
     const t = (performance.now() - flashStart) / FLASH_MS;
     if (t < 1) {
-      const it = issues[active], X = sx(it.x), Y = sy(it.y);
+      const it = shown[active], X = sx(it.x), Y = sy(it.y);
       const R0 = Math.max(12, (it.r ? it.r + 0.5 : 1.6) * view.s);
       const fade = 1 - t, pulse = (t * 2) % 1;
       ctx.fillStyle = `rgba(255,225,77,${0.30 * fade})`;
@@ -1006,7 +1179,29 @@ function flash() {
 // pan / zoom
 let drag = null;
 cv.addEventListener("mousedown", e => { drag = { x: e.clientX, y: e.clientY, ox: view.ox, oy: view.oy }; cv.classList.add("dragging"); });
-window.addEventListener("mouseup", () => { drag = null; cv.classList.remove("dragging"); });
+window.addEventListener("mouseup", e => {
+  // A click (not a drag) on the board: pick the smallest issue circle under the pointer
+  if (drag && hyp(e.clientX - drag.x, e.clientY - drag.y) < 4 && e.target === cv) {
+    const r = cv.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+    let pick = -1, best = Infinity;
+    shown.forEach((it, i) => {
+      if (it.noMark) return;
+      const R = Math.max(10, (it.r ? it.r + 0.5 : 1.6) * view.s);
+      const d = hyp(mx - sx(it.x), my - sy(it.y));
+      if (d <= R + 4 && R < best) { best = R; pick = i; }
+    });
+    if (pick >= 0) selectFromBoard(pick);
+  }
+  drag = null; cv.classList.remove("dragging");
+});
+function selectFromBoard(i) {
+  active = i;
+  const lis = document.querySelectorAll("#issues li");
+  lis.forEach((li, k) => { li.classList.toggle("active", k === i); li.classList.remove("flash"); });
+  const li = lis[i];
+  if (li) { void li.offsetWidth; li.classList.add("flash"); li.scrollIntoView({ block: "center", behavior: "smooth" }); }
+  flash();                                         // same yellow glow on the circle, without moving the view
+}
 window.addEventListener("mousemove", e => { if (!drag) return; view.ox = drag.ox + e.clientX - drag.x; view.oy = drag.oy + e.clientY - drag.y; draw(); });
 cv.addEventListener("wheel", e => {
   e.preventDefault();
@@ -1018,7 +1213,7 @@ window.addEventListener("resize", draw);
 
 function focusIssue(i) {
   active = i;
-  const it = issues[i], r = cv.getBoundingClientRect();
+  const it = shown[i], r = cv.getBoundingClientRect();
   if (it.noMark) {
     document.querySelectorAll("#issues li").forEach((li, k) => li.classList.toggle("active", k === i));
     fit(); return;
@@ -1036,28 +1231,47 @@ function focusIssue(i) {
 let fileName = "";
 const MIL = 0.0254;                 // mm per mil
 const milTxt = mm => (mm / MIL).toFixed(1) + " mil";
+const chk = id => document.getElementById(id).checked;
 function options() {
   const v = id => parseFloat(document.getElementById(id).value) || 0;
   return { minGap: v("minGap") * MIL, minWidth: v("minWidth") * MIL, prefWidth: v("prefWidth") * MIL, exitTol: 1.0, centreTol: v("centreTol") * MIL, jogMax: 2.0, jogErr: v("jogErr") * MIL, jogWarn: v("jogWarn") * MIL,
-           holeCount: v("holeCount"), holeEdge: v("holeEdge"), holeKeep: v("holeKeep") };
+           overlapAllow: v("overlapAllow") * MIL, minHole: v("minHole") * MIL, holeCount: v("holeCount"), holeEdge: v("holeEdge"), holeKeep: v("holeKeep"),
+           permit: { short: chk("permitShort"), sideExit: chk("permitSide"), overlap: chk("permitOverlap"), offGrid: chk("permitOffGrid"), unrouted: chk("permitUnrouted"), smt: chk("permitSMT"), holes: chk("permitHoles") } };
 }
+function viewOpts() {
+  return { names: chk("showNames"), top: chk("showTop"), bottom: chk("showBottom"), err: chk("showErr"), warn: chk("showWarn"), info: chk("showInfo") };
+}
+// Re-run every check (Settings and Permit changes)
 function analyse() {
   if (!B) return;
-  issues = runChecks(B, options()); active = -1;
-  const c = s => issues.filter(i => i.severity === s).length;
+  issues = runChecks(B, options());
+  render();
+}
+// Re-draw the list and board from the current issues (View changes)
+function render() {
+  if (!B) return;
+  const V = viewOpts();
+  active = -1;
+  // Hiding a layer hides its issues everywhere (pinned and board-wide issues always stay)
+  const counted = issues.filter(it => it.pin || it.layer === "Board" || (it.layer === "Top" ? V.top : V.bottom));
+  // The Errors/Warnings/Notes switches only filter what's listed and circled
+  shown = counted.filter(it => it.severity === "error" ? V.err : it.severity === "warning" ? V.warn : V.info);
+  shown.forEach((it, i) => it.n = i + 1);
+  const c = s => counted.filter(i => i.severity === s).length;
   const left = c("error") + c("warning");
+  const topTxt = B.topSegs.length ? ` (+${B.topSegs.length} on Top)` : "";
   document.getElementById("summary").innerHTML =
-    `<div class="sumhead"><div><strong>${fileName}</strong><br>${B.elements.length} parts · ${B.pads.length} pads · ${B.segs.length} trace segments</div>` +
+    `<div class="sumhead"><div><strong>${fileName}</strong><br>${B.elements.length} parts · ${B.pads.length} pads · ${B.segs.length} trace segments${topTxt}</div>` +
     `<div class="tracker" title="${left} error${left === 1 ? "" : "s"} + warning${left === 1 ? "" : "s"} left to fix">${badgeSVG(left, 60, left + " errors and warnings left to fix")}</div></div>` +
     `<div class="counts"><span class="chip error">${c("error")} errors</span><span class="chip warning">${c("warning")} warnings</span><span class="chip info">${c("info")} notes</span></div>` +
     (c("error") + c("warning") === 0
-      ? `<div class="ready"><strong>No errors or warnings.</strong> Your design is ready for final review. Send your <strong>.fbrd</strong> file and a <strong>screenshot</strong> of the board to your instructor.</div>`
+      ? `<div class="ready"><strong>No errors or warnings.</strong> Your design is ready for final review. Send your <strong>.fbrd</strong> file and a <strong>screenshot</strong> of the board to your instructor. There may be other design issues with your board that Copper Cop doesn't check.</div>`
       : "");
   const ol = document.getElementById("issues"); ol.innerHTML = "";
-  issues.forEach((it, i) => {
+  shown.forEach((it, i) => {
     const li = document.createElement("li"); li.className = it.severity;
     li.innerHTML = `<span class="num">${it.n}</span><span class="rule"></span> <span class="where"></span><div class="msg"></div>`;
-    li.querySelector(".rule").textContent = it.rule;
+    li.querySelector(".rule").textContent = (it.layer === "Top" && !it.pin ? "Top: " : "") + it.rule;
     li.querySelector(".where").textContent = "· " + it.where;
     li.querySelector(".msg").textContent = it.msg;
     li.onclick = () => focusIssue(i);
@@ -1089,14 +1303,20 @@ async function load(file) {
     document.getElementById("drop").classList.add("hidden");
     analyse(); fit();
   } catch (err) {
-    B = null; issues = []; draw(); showPreview(null);
+    B = null; issues = []; shown = []; draw(); showPreview(null);
     document.getElementById("summary").textContent = "Could not read file: " + err.message;
     document.getElementById("issues").innerHTML = "";
   }
 }
 document.getElementById("file").addEventListener("change", e => e.target.files[0] && load(e.target.files[0]));
-["minGap", "minWidth", "prefWidth", "centreTol", "jogErr", "jogWarn", "holeCount", "holeEdge", "holeKeep"].forEach(id => document.getElementById(id).addEventListener("change", analyse));
+["minGap", "minWidth", "prefWidth", "centreTol", "jogErr", "jogWarn", "overlapAllow", "holeCount", "holeEdge", "holeKeep",
+ "permitShort", "permitSide", "permitOverlap", "permitOffGrid", "permitUnrouted", "permitSMT", "permitHoles", "minHole"].forEach(id => document.getElementById(id).addEventListener("change", analyse));
+["showTop", "showBottom", "showErr", "showWarn", "showInfo"].forEach(id => document.getElementById(id).addEventListener("change", render));
 document.getElementById("showNames").addEventListener("change", draw);
+// Only one dropdown open at a time; clicking elsewhere closes them
+const menus = [...document.querySelectorAll("details.menu")];
+menus.forEach(d => d.addEventListener("toggle", () => { if (d.open) menus.forEach(o => { if (o !== d) o.open = false; }); }));
+document.addEventListener("click", e => { if (!e.target.closest("details.menu")) menus.forEach(d => d.open = false); });
 document.getElementById("fit").addEventListener("click", fit);
 const stage = document.getElementById("stage"), drop = document.getElementById("drop");
 stage.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
